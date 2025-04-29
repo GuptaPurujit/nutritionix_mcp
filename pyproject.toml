@@ -1,0 +1,27 @@
+[project]
+name = "nutritionix_mcp"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115.12",
+    "httpx>=0.28.1",
+    "langchain>=0.3.24",
+    "langchain-community>=0.3.23",
+    "langchain-mcp-adapters>=0.0.9",
+    "langchain-ollama>=0.3.2",
+    "langgraph>=0.4.0",
+    "mcp-server>=0.1.4",
+    "mcp[cli]>=1.6.0",
+    "ollama>=0.4.8",
+    "openai>=1.76.2",
+    "pytest>=8.3.5",
+    "python-dotenv",
+    "respx>=0.22.0",
+    "uvicorn[standard]>=0.34.2",
+]
+
+[project.scripts]
+start-mcp = "server:main"
+start-api = "uvicorn app:app --reload"
