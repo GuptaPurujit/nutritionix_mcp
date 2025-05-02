@@ -1,47 +1,42 @@
-# orchestrator.py
-
-import os
-import sys
+import json
 import asyncio
-import argparse
 
-# ──────────────────────────────────────────────────────────────────────────────
-# On Windows, ensure subprocess_exec is supported
-# ──────────────────────────────────────────────────────────────────────────────
-if os.name == "nt":
-    asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+from typing import List
 
-from mcp_client import MCPClient
-from dotenv import load_dotenv
+from langchain_mcp_adapters.client import MultiServerMCPClient
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from langgraph.prebuilt import create_react_agent
 
-load_dotenv()
+from llm import LLM
 
-# Singleton client instance
-_CLIENT = None
+with open("config.json", "r") as file:
+    server_configs = json.loads(file.read())
+    
 
-async def get_client():
-    global _CLIENT
-    if _CLIENT is None:
-        _CLIENT = MCPClient()
-        target = os.getenv("MCP_SERVER_TARGET", "server.py")
-        await _CLIENT.connect(target)
-    return _CLIENT
+# create a model
+model = LLM().get_llm()
 
-async def run_meal_logging(user_input: str, region: str = "US"):
-    """
-    Run a meal-logging prompt through Ollama + Nutritionix MCP tools.
-    """
-    client = await get_client()
-    # Embed region context in the user prompt
-    prompt = f"{user_input} (region: {region})"
-    summary, _ = await client.process_query(prompt)
-    return summary
+template = """Answer user queries, and use tools like get_nutrients or search_food to answer questions if you are not sure. User might use hindi terms for food items so make sure you clarify if you are not sure on what the food item is, but don't ask always if not required.
+"""
+
+messages = [
+    ("system", template)
+]
+
+async def invoke_agent(query: str, history = None):
+    if history is not None:
+        for message in history:
+            messages.append(("system", message))
+            
+    messages.append(("human", query))
+
+    prompt_template = ChatPromptTemplate.from_messages(messages)
+    print(prompt_template)
+    async with MultiServerMCPClient(server_configs) as client:
+        agent = create_react_agent(model, client.get_tools())
+        response = await agent.ainvoke({"messages": query})
+        return response
 
 if __name__ == "__main__":
-    # Quick CLI test
-    parser = argparse.ArgumentParser()
-    parser.add_argument("input", help="Meal description")
-    parser.add_argument("--region", default="IN")
-    args = parser.parse_args()
-    result = asyncio.run(run_meal_logging(args.input, args.region))
-    print(result)
+    r = asyncio.run(invoke_agent("what's the calorie content of 1 large banana?", None))
+    print(r)

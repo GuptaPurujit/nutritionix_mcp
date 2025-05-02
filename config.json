@@ -1,0 +1,7 @@
+{
+    "nutrition-server": {
+        "command": "python",
+        "args": ["C:\\Users\\purujit.gupta\\Desktop\\FAFOs\\nutritionix_mcp\\server.py"],
+        "transport": "stdio"
+    }
+}
