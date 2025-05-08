@@ -23,12 +23,25 @@ def transform(user_input: str, history: list[mel.ChatMessage]):
     Encodes the user_input via `params=`, calls your FastAPI,
     and yields the assistant’s last message.
     """
+    history_messages = []
+    # Generate the chat history as a string dict
+    if history is not None:
+        for message in history:
+            history_messages.append({"role": message.role, "message": message.content})
+    
+    print(user_input)
+    print("##########")
+    print(history_messages)
+    
     # 1️⃣ Send GET exactly as your curl does, with params for safe encoding
-    response = requests.get(
+    response = requests.post(
         "http://127.0.0.1:8002/",
-        params={"query": user_input},
-        headers={"accept": "application/json"}
+        json={"query": user_input, "history": history_messages[:-1]},
+        headers={"accept": "application/json", "content-type": "application/json"}
     )
+    
+    print(response)
+    
     response.raise_for_status()
 
     # 2️⃣ Parse the JSON payload

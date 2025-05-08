@@ -1,0 +1,8 @@
+1. Refine the MCP Server
+    - Add Function Docstring
+    - Split the get_nutrients function to cache the results and only return high level information
+    - Add a new function that the LLM can call after it decides what the correct volume/weight unit is out of the available ones
+
+2. Use LangGraph to create a structured approach to solve the problem
+
+3. Add History Logic for Chat Model

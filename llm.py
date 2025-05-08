@@ -2,11 +2,14 @@
 import os
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class LLM:
     def __init__(self):
-        self.model_name = os.getenv("LLM_MODEL", "llama3-groq-tool-use:latest")
-        self.base_url   = os.getenv("OLLAMA_BASE_URL", None)
+        self.model_name = os.getenv("LLM_MODEL")
+        self.base_url   = os.getenv("OLLAMA_BASE_URL")
 
     def get_llm(self) -> ChatOllama:
         """
