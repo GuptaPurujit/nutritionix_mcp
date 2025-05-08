@@ -14,15 +14,31 @@ with open("config.json", "r") as file:
     
 
 # create a model
-model = LLM().get_llm()
+model = LLM().get_openai_llm()
 
-template = """Answer user queries, and use tools like get_nutrients or search_food to answer questions if you are not sure. User might use hindi terms for food items so make sure you clarify if you are not sure on what the food item is, but don't ask always if not required.
-"""
+prompt = """You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Mention the tool_name you used in the final answer (if used)
+
+Thought:{agent_scratchpad}"""
 
 async def invoke_agent(query: str, history: List[dict]):
-    messages = [
-        ("system", template)
-    ]
+    messages = []
 
     if history is not None:
         for message in history:
@@ -32,7 +48,7 @@ async def invoke_agent(query: str, history: List[dict]):
     prompt_template = ChatPromptTemplate.from_messages(messages)
     print(prompt_template)
     async with MultiServerMCPClient(server_configs) as client:
-        agent = create_react_agent(model, client.get_tools())
+        agent = create_react_agent(model=model, tools=client.get_tools(), prompt=prompt)
         # Create list of messages from prompt template and append query
         messages = prompt_template.format_messages()
         response = await agent.ainvoke({"messages": messages})

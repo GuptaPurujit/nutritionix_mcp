@@ -28,20 +28,14 @@ def transform(user_input: str, history: list[mel.ChatMessage]):
     if history is not None:
         for message in history:
             history_messages.append({"role": message.role, "message": message.content})
-    
-    print(user_input)
-    print("##########")
-    print(history_messages)
-    
+
     # 1️⃣ Send GET exactly as your curl does, with params for safe encoding
     response = requests.post(
         "http://127.0.0.1:8002/",
         json={"query": user_input, "history": history_messages[:-1]},
         headers={"accept": "application/json", "content-type": "application/json"}
     )
-    
-    print(response)
-    
+
     response.raise_for_status()
 
     # 2️⃣ Parse the JSON payload
